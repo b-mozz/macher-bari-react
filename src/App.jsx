@@ -6,14 +6,15 @@ import { useState, useEffect, useRef, createContext, useContext } from 'react'
 
 // -------- menu data --------
 const starters = [
-  { name: 'Beguni', price: 7, desc: 'Crispy battered eggplant, tamarind chutney' },
-  { name: 'Aloo Chop', price: 8, desc: 'Spiced potato croquettes, kasha filling' },
-  { name: 'Shingara', price: 6, desc: 'Bengali samosa, potato and peanuts' },
+    { name: 'Beguni', price: 7, desc: 'Crispy battered eggplant, tamarind chutney' },
+    { name: 'Aloo Chop', price: 8, desc: 'Spiced potato croquettes, kasha filling' },
+    { name: 'Shingara', price: 6, desc: 'Bengali samosa, potato and peanuts' },
 ]
+
 const mains = [
-  { name: 'Ilish Bhapa', price: 26, desc: 'Steamed hilsa, mustard-coconut, banana leaf' },
-  { name: 'Chingri Malaikari', price: 22, desc: 'Prawns in coconut milk, whole spices' },
-  { name: 'Kosha Mangsho', price: 24, desc: 'Slow-cooked mutton, onion-ginger gravy' },
+  {name:'Ilish Bhapa',price:26,desc:'Steamed hilsa, mustard-coconut, banana leaf'},
+  {name:'Chingri Malaikari',price:22,desc:'Prawns in coconut milk, whole spices'},
+  {name:'Kosha Mangsho',price:24,desc:'Slow-cooked mutton, onion-ginger gravy'},
   { name: 'Kolkata Biryani', price: 20, desc: 'Dum biryani, aloo, egg, saffron, kewra' },
 ]
 const desserts = [
@@ -60,9 +61,9 @@ function App() {
   }, [])
 
   // ---- save cart whenever it changes ----
-  useEffect(() => {
+  useEffect(()=>{
     localStorage.setItem('cart', JSON.stringify(cart))
-  }, [cart])
+  }, [cart]);
 
   // ---- horizontal scroll trick (from old vanilla js version) ----
   // honestly idk why this works but it does. dont touch it
@@ -84,16 +85,18 @@ function App() {
       if (isMobile()) return
       track.style.transform = 'translateX(' + (-window.scrollY) + 'px)'
     }
+
     function onResize() { setHeight(); onScroll() }
-    function onLink(e) {
-      if (isMobile()) return
-      const a = e.target.closest('a[href^="#"]')
-      if (!a) return
-      const id = a.getAttribute('href')
-      const t = document.querySelector(id)
-      if (!t) return
-      e.preventDefault()
-      window.scrollTo({ top: t.offsetLeft, behavior: 'smooth' })
+
+      function onLink(e) {
+        if (isMobile()) return
+        const a = e.target.closest('a[href^="#"]')
+        if (!a) return
+        const id = a.getAttribute('href')
+        const t = document.querySelector(id)
+        if (!t) return
+        e.preventDefault()
+        window.scrollTo({top:t.offsetLeft, behavior:'smooth'})
     }
 
     setHeight()
@@ -125,17 +128,20 @@ function App() {
     if (!found) arr.push({ name: name, price: price, quantity: 1 })
     setCart(arr)
   }
-  function removeFromCart(name) {
-    setCart(cart.filter(i => i.name !== name))
+  function removeFromCart(name){
+    setCart(cart.filter(i=>i.name!==name))
   }
+
+
   function updateQty(name, delta) {
     const arr = []
     for (let i = 0; i < cart.length; i++) {
       if (cart[i].name === name) {
         const q = cart[i].quantity + delta
         if (q > 0) arr.push({ ...cart[i], quantity: q })
-      } else {
-        arr.push(cart[i])
+      }
+      else {
+          arr.push(cart[i])
       }
     }
     setCart(arr)
@@ -153,10 +159,11 @@ function App() {
 
   // totals
   let total = 0, count = 0
-  for (let i = 0; i < cart.length; i++) {
-    total += cart[i].price * cart[i].quantity
+  for (let i=0; i<cart.length; i++) {
+    total += cart[i].price*cart[i].quantity
     count += cart[i].quantity
   }
+
 
   // ---- form ----
   // TODO: actually send the form somewhere instead of alert
@@ -200,8 +207,10 @@ function App() {
   return (
     <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQty, total, count }}>
 
+
+
       {/* ===== NAV ===== */}
-      <nav className="fixed top-0 left-0 right-0 z-30 flex justify-between items-center px-10 py-4 bg-black/30 backdrop-blur">
+       <nav className="fixed top-0 left-0 right-0 z-30 flex justify-between items-center px-10 py-4 bg-black/30 backdrop-blur">
         <a href="#hero" className="serif text-white text-lg">Macher Bari</a>
         <ul className={`gap-7 md:flex ${navOpen ? 'flex' : 'hidden'} text-white text-[0.65rem] uppercase tracking-[0.15em]`}>
           {/* tried to map these but it broke for some reason so just hardcoded */}
@@ -283,17 +292,19 @@ function App() {
               <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-[var(--muted)] mb-1">01</span>
               <h2 className="serif text-5xl md:text-6xl text-[var(--ink)]">Menu</h2>
             </div>
+
             <div className="flex flex-col md:flex-row gap-16">
+                <div className="min-w-[240px]">
+                  <h3 className="font-mono text-xs font-medium uppercase tracking-widest text-[var(--accent)] border-b border-[var(--accent)] pb-1 mb-5 inline-block">Starters</h3>
+                  {starters.map(it => <MenuRow key={it.name} {...it} />)}
+                </div>
+
               <div className="min-w-[240px]">
-                <h3 className="font-mono text-[0.65rem] font-medium uppercase tracking-[0.2em] text-[var(--accent)] border-b border-[var(--accent)] pb-1 mb-5 inline-block">Starters</h3>
-                {starters.map(it => <MenuRow key={it.name} {...it} />)}
-              </div>
-              <div className="min-w-[240px]">
-                <h3 className="font-mono text-[0.65rem] font-medium uppercase tracking-[0.2em] text-[var(--accent)] border-b border-[var(--accent)] pb-1 mb-5 inline-block">Mains</h3>
+                <h3 className="font-mono text-xs font-medium uppercase tracking-widest text-[var(--accent)] border-b border-[var(--accent)] pb-1 mb-5 inline-block">Mains</h3>
                 {mains.map(it => <MenuRow key={it.name} {...it} />)}
               </div>
               <div className="min-w-[240px]">
-                <h3 className="font-mono text-[0.65rem] font-medium uppercase tracking-[0.2em] text-[var(--accent)] border-b border-[var(--accent)] pb-1 mb-5 inline-block">Desserts</h3>
+              <h3 className="font-mono text-xs font-medium uppercase tracking-widest text-[var(--accent)] border-b border-[var(--accent)] pb-1 mb-5 inline-block">Desserts</h3>
                 {desserts.map(it => <MenuRow key={it.name} {...it} />)}
               </div>
             </div>
@@ -349,10 +360,11 @@ function App() {
             </div>
             <div className="flex flex-col md:flex-row gap-10 max-w-3xl">
               <form onSubmit={submitForm} className="flex-1 flex flex-col gap-3">
-                <input type="text" placeholder="Name" value={fName} onChange={e => setFName(e.target.value)} className={inpCls} />
-                <input type="email" placeholder="Email" value={fEmail} onChange={e => setFEmail(e.target.value)} className={inpCls} />
-                <textarea rows="4" placeholder="Message" value={fMsg} onChange={e => setFMsg(e.target.value)} className={inpCls} />
-                <button type="submit" className="bg-[var(--accent)] text-[var(--cream)] py-3 rounded font-mono text-[0.7rem] font-medium tracking-[0.15em] uppercase hover:opacity-80 transition">Send</button>
+                  <input type="text"  placeholder="Name"  value={fName}  onChange={e=>setFName(e.target.value)} className={inpCls} />
+                <input type="email" placeholder="Email" value={fEmail} onChange={e=>setFEmail(e.target.value)} className={inpCls} />
+                <textarea rows="4" placeholder="Message" value={fMsg} onChange={e=>setFMsg(e.target.value)} className={inpCls} />
+
+                <button type="submit" className="bg-[var(--accent)] text-[var(--cream)] py-3 rounded font-mono text-xs font-medium tracking-widest uppercase hover:opacity-80 transition">Send</button>
               </form>
               <div className="flex-1">
                 <iframe title="map" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3021.5!2d-73.891!3d40.7496!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25f1987b0f30d%3A0x2a3e0f1a5d5b5e0!2sJackson+Heights%2C+NY!5e0!3m2!1sen!2sus!4v1" className="w-full min-h-[240px] h-full border-0 rounded" />
@@ -385,7 +397,7 @@ function App() {
                 <a href="#" className="block text-xs text-[var(--muted)] leading-loose hover:text-[var(--accent)]">Facebook</a>
                 <a href="#" className="block text-xs text-[var(--muted)] leading-loose hover:text-[var(--accent)]">Instagram</a>
                 <a href="#" className="block text-xs text-[var(--muted)] leading-loose hover:text-[var(--accent)]">Twitter</a>
-                <a href="#" className="block text-xs text-[var(--muted)] leading-loose hover:text-[var(--accent)]">Yelp</a>
+                  <a href="#" className="block text-xs text-[var(--muted)] leading-loose hover:text-[var(--accent)]">Yelp</a>
               </div>
             </div>
             <p className="text-[0.6rem] text-[var(--muted)] opacity-40">© 2026 Macher Bari</p>
