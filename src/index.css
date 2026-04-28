@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+/* original color palette so tailwind can reference it via bg-[var(--accent)] etc */
+:root {
+  --bg: #f0e8d8;
+  --surface: #e6dcc8;
+  --text: #2a2520;
+  --muted: #8a7e6f;
+  --accent: #d35d3a;       /* burnt orange */
+  --pop: #3a6b4f;          /* earthy green */
+  --cream: #faf5eb;
+  --ink: #1a1714;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'DM Mono', monospace;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+}
+
+h1, h2, h3, .serif {
+  font-family: 'Instrument Serif', serif;
+  font-weight: 400;
+}
+
+a { color: inherit; text-decoration: none; }
