@@ -1,5 +1,6 @@
 // macher bari restaurant site - react version
 // everything is in this file. it works ok??
+// - bimukti, cs395
 
 import { useState, useEffect, useRef, createContext, useContext } from 'react'
 
@@ -64,6 +65,7 @@ function App() {
   }, [cart])
 
   // ---- horizontal scroll trick (from old vanilla js version) ----
+  // honestly idk why this works but it does. dont touch it
   useEffect(() => {
     const track = trackRef.current
     if (!track) return
@@ -98,9 +100,10 @@ function App() {
     window.addEventListener('scroll', onScroll)
     window.addEventListener('resize', onResize)
     document.addEventListener('click', onLink)
+    // TODO: add cleanup if there's time. probably leaks but who cares its just a school project
     return () => {
       window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onResize)
+      // window.removeEventListener('resize', onResize)
       document.removeEventListener('click', onLink)
       document.body.style.height = 'auto'
     }
@@ -108,17 +111,18 @@ function App() {
 
   // ---- cart functions ----
   function addToCart(name, price) {
+    console.log('adding to cart:', name, price)
     let found = false
     const arr = []
     for (let i = 0; i < cart.length; i++) {
       if (cart[i].name === name) {
-        arr.push({ name, price, quantity: cart[i].quantity + 1 })
+        arr.push({ name: name, price: price, quantity: cart[i].quantity + 1 })
         found = true
       } else {
         arr.push(cart[i])
       }
     }
-    if (!found) arr.push({ name, price, quantity: 1 })
+    if (!found) arr.push({ name: name, price: price, quantity: 1 })
     setCart(arr)
   }
   function removeFromCart(name) {
@@ -155,10 +159,14 @@ function App() {
   }
 
   // ---- form ----
+  // TODO: actually send the form somewhere instead of alert
   function submitForm(e) {
     e.preventDefault()
+    // console.log({fName, fEmail, fMsg})
     alert('Dhonnobad! We will be in touch.')
-    setFName(''); setFEmail(''); setFMsg('')
+    setFName('')
+    setFEmail('')
+    setFMsg('')
   }
 
   // input className - reused so put it in a var
@@ -178,10 +186,10 @@ function App() {
           <span className="flex-1 border-b border-dotted border-[var(--muted)] opacity-30 mx-1"></span>
           <span className="text-xs font-medium text-[var(--accent)]">${price}</span>
         </div>
-        <p className="text-[0.65rem] text-[var(--muted)] leading-relaxed mt-1 mb-2">{desc}</p>
+        <p className="text-xs text-[var(--muted)] leading-relaxed mt-1 mb-2">{desc}</p>
         <button
           onClick={() => addToCart(name, price)}
-          className="px-4 py-2 bg-[var(--accent)] text-[var(--cream)] rounded text-[0.65rem] font-medium tracking-[0.1em] uppercase hover:bg-[var(--pop)] transition"
+          className="px-4 py-2 bg-[var(--accent)] text-[var(--cream)] rounded text-xs font-medium uppercase hover:bg-[var(--pop)] transition"
         >
           Add to Cart
         </button>
@@ -196,6 +204,7 @@ function App() {
       <nav className="fixed top-0 left-0 right-0 z-30 flex justify-between items-center px-10 py-4 bg-black/30 backdrop-blur">
         <a href="#hero" className="serif text-white text-lg">Macher Bari</a>
         <ul className={`gap-7 md:flex ${navOpen ? 'flex' : 'hidden'} text-white text-[0.65rem] uppercase tracking-[0.15em]`}>
+          {/* tried to map these but it broke for some reason so just hardcoded */}
           <li><a href="#hero" onClick={() => setNavOpen(false)} className="hover:opacity-50">Home</a></li>
           <li><a href="#menu" onClick={() => setNavOpen(false)} className="hover:opacity-50">Menu</a></li>
           <li><a href="#gallery" onClick={() => setNavOpen(false)} className="hover:opacity-50">Gallery</a></li>
@@ -255,7 +264,7 @@ function App() {
           <section id="hero" className="md:h-full flex flex-col md:flex-row items-center justify-center gap-16 px-16 pt-24 pb-16 bg-[var(--accent)] text-[var(--cream)] min-h-screen">
             <div className="flex-1 max-w-xl">
               <p className="text-[0.6rem] uppercase tracking-[0.2em] text-white/50 mb-4">Est. 2019 — Jackson Heights, Queens</p>
-              <h1 className="serif leading-[0.92] mb-4 text-[clamp(4rem,9vw,8rem)] text-[var(--cream)]">
+                      <h1 className="serif text-7xl md:text-9xl leading-none mb-4 text-[var(--cream)]">
                 Macher<br /><i className="text-[var(--bg)]">Bari</i>
               </h1>
               <p className="text-xs text-white/60 leading-relaxed mb-6">Bengali kitchen. Home cooking. No shortcuts.</p>
@@ -272,7 +281,7 @@ function App() {
           <section id="menu" className="md:h-full flex flex-col justify-center px-16 pt-24 pb-16 bg-[var(--cream)]">
             <div className="mb-8">
               <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-[var(--muted)] mb-1">01</span>
-              <h2 className="serif text-[clamp(2.2rem,5vw,4rem)] text-[var(--ink)]">Menu</h2>
+              <h2 className="serif text-5xl md:text-6xl text-[var(--ink)]">Menu</h2>
             </div>
             <div className="flex flex-col md:flex-row gap-16">
               <div className="min-w-[240px]">
@@ -296,7 +305,7 @@ function App() {
           <section id="gallery" className="md:h-full flex flex-col justify-center px-16 pt-24 pb-16 bg-[var(--pop)] text-[var(--cream)]">
             <div className="mb-8">
               <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-white/40 mb-1">02</span>
-              <h2 className="serif text-[clamp(2.2rem,5vw,4rem)] text-[var(--cream)]">Gallery</h2>
+              <h2 className="serif text-5xl md:text-6xl text-[var(--cream)]">Gallery</h2>
             </div>
             <div ref={galRef} className="flex gap-4 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
               {photos.map(p => (
@@ -318,7 +327,7 @@ function App() {
           <section id="about" className="md:h-full flex flex-col justify-center px-16 pt-24 pb-16 bg-[var(--bg)]">
             <div className="mb-8">
               <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-[var(--muted)] mb-1">03</span>
-              <h2 className="serif text-[clamp(2.2rem,5vw,4rem)] text-[var(--ink)]">About</h2>
+              <h2 className="serif text-5xl md:text-6xl text-[var(--ink)]">About</h2>
             </div>
             <div className="flex flex-col md:flex-row gap-10 items-start">
               <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&q=80" alt="cooking" className="w-[220px] h-[220px] object-cover rounded flex-shrink-0" />
@@ -336,7 +345,7 @@ function App() {
           <section id="contact" className="md:h-full flex flex-col justify-center px-16 pt-24 pb-16 bg-[var(--cream)]">
             <div className="mb-8">
               <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-[var(--muted)] mb-1">04</span>
-              <h2 className="serif text-[clamp(2.2rem,5vw,4rem)] text-[var(--ink)]">Contact</h2>
+              <h2 className="serif text-5xl md:text-6xl text-[var(--ink)]">Contact</h2>
             </div>
             <div className="flex flex-col md:flex-row gap-10 max-w-3xl">
               <form onSubmit={submitForm} className="flex-1 flex flex-col gap-3">
