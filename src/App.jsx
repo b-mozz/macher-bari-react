@@ -5,23 +5,8 @@
 import { useState, useEffect, useRef, createContext, useContext } from 'react'
 
 // -------- menu data --------
-const starters = [
-    { name: 'Beguni', price: 7, desc: 'Crispy battered eggplant, tamarind chutney' },
-    { name: 'Aloo Chop', price: 8, desc: 'Spiced potato croquettes, kasha filling' },
-    { name: 'Shingara', price: 6, desc: 'Bengali samosa, potato and peanuts' },
-]
-
-const mains = [
-  {name:'Ilish Bhapa',price:26,desc:'Steamed hilsa, mustard-coconut, banana leaf'},
-  {name:'Chingri Malaikari',price:22,desc:'Prawns in coconut milk, whole spices'},
-  {name:'Kosha Mangsho',price:24,desc:'Slow-cooked mutton, onion-ginger gravy'},
-  { name: 'Kolkata Biryani', price: 20, desc: 'Dum biryani, aloo, egg, saffron, kewra' },
-]
-const desserts = [
-  { name: 'Nolen Gurer Payesh', price: 10, desc: 'Rice pudding, date palm jaggery' },
-  { name: 'Mishti Doi', price: 8, desc: 'Sweetened yogurt in clay pots' },
-  { name: 'Rasgulla', price: 9, desc: 'Spongy chenna balls in sugar syrup' },
-]
+// menu now lives in MongoDB - fetched from the backend at runtime (see useEffect below)
+const API = 'http://localhost:5050'
 
 const photos = [
   { num: '01', src: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=500&q=80', alt: 'curry' },
@@ -46,6 +31,10 @@ function App() {
   const [cartOpen, setCartOpen] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
 
+  // menu state - filled in from the backend
+  const [menu, setMenu] = useState([])      // flat array of all menu items
+  const [menuError, setMenuError] = useState('')
+
   // form fields (lifted up here bc why not)
   const [fName, setFName] = useState('')
   const [fEmail, setFEmail] = useState('')
@@ -60,6 +49,27 @@ function App() {
     if (x) setCart(JSON.parse(x))
   }, [])
 
+  // ---- fetch menu from the backend on first render ----
+  useEffect(() => {
+    fetch(API + '/api/menu')
+      .then(res => {
+        if (!res.ok) throw new Error('server returned ' + res.status)
+        return res.json()
+      })
+      .then(data => setMenu(data))
+      .catch(err => {
+        console.error('could not load menu:', err)
+        setMenuError('Could not load the menu. Is the backend running?')
+      })
+  }, [])
+
+  // ---- the horizontal-scroll trick measures page width once on mount, but the
+  // menu loads later and makes the page wider. fire a resize event when the
+  // menu arrives so that trick recalculates the scrollable width. ----
+  useEffect(() => {
+    window.dispatchEvent(new Event('resize'))
+  }, [menu])
+
   // ---- save cart whenever it changes ----
   useEffect(()=>{
     localStorage.setItem('cart', JSON.stringify(cart))
@@ -70,7 +80,9 @@ function App() {
   useEffect(() => {
     const track = trackRef.current
     if (!track) return
-    const isMobile = () => window.innerWidth <= 900
+    // must match Tailwind's `md` breakpoint (768px) - the track goes `md:fixed`
+    // in CSS at 768px, so the JS has to switch modes at the exact same width.
+    const isMobile = () => window.innerWidth < 768
 
     function setHeight() {
       if (isMobile()) {
@@ -150,11 +162,36 @@ function App() {
     if (cart.length === 0) return
     if (confirm('Clear cart?')) setCart([])
   }
-  function checkout() {
+  // ---- checkout: save the order to the backend ----
+  async function checkout() {
     if (cart.length === 0) { alert('Your cart is empty!'); return }
+
+    // work out the total
     let t = 0
     for (let i = 0; i < cart.length; i++) t += cart[i].price * cart[i].quantity
-    alert('Thank you! Total: $' + t.toFixed(2))
+
+    // build the order payload - shape must match the Order schema on the server
+    const order = {
+      items: cart.map(i => ({ name: i.name, price: i.price, quantity: i.quantity })),
+      total: t,
+      customerName: fName || 'Guest',
+    }
+
+    try {
+      const res = await fetch(API + '/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(order),
+      })
+      if (!res.ok) throw new Error('server returned ' + res.status)
+      await res.json()                          // the saved order, with its _id
+      alert('Thank you! Total: $' + t.toFixed(2))
+      setCart([])                               // empty the cart after a successful order
+      setCartOpen(false)
+    } catch (err) {
+      console.error('checkout failed:', err)
+      alert('Sorry, could not place your order. Please try again.')
+    }
   }
 
   // totals
@@ -293,19 +330,21 @@ function App() {
               <h2 className="serif text-5xl md:text-6xl text-[var(--ink)]">Menu</h2>
             </div>
 
+            {menuError && <p className="font-mono text-xs text-red-600 mb-4">{menuError}</p>}
+
             <div className="flex flex-col md:flex-row gap-16">
                 <div className="min-w-[240px]">
                   <h3 className="font-mono text-xs font-medium uppercase tracking-widest text-[var(--accent)] border-b border-[var(--accent)] pb-1 mb-5 inline-block">Starters</h3>
-                  {starters.map(it => <MenuRow key={it.name} {...it} />)}
+                  {menu.filter(it => it.category === 'starter').map(it => <MenuRow key={it._id} {...it} />)}
                 </div>
 
               <div className="min-w-[240px]">
                 <h3 className="font-mono text-xs font-medium uppercase tracking-widest text-[var(--accent)] border-b border-[var(--accent)] pb-1 mb-5 inline-block">Mains</h3>
-                {mains.map(it => <MenuRow key={it.name} {...it} />)}
+                {menu.filter(it => it.category === 'main').map(it => <MenuRow key={it._id} {...it} />)}
               </div>
               <div className="min-w-[240px]">
               <h3 className="font-mono text-xs font-medium uppercase tracking-widest text-[var(--accent)] border-b border-[var(--accent)] pb-1 mb-5 inline-block">Desserts</h3>
-                {desserts.map(it => <MenuRow key={it.name} {...it} />)}
+                {menu.filter(it => it.category === 'dessert').map(it => <MenuRow key={it._id} {...it} />)}
               </div>
             </div>
           </section>
