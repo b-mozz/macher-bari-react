@@ -6,7 +6,8 @@ import { useState, useEffect, useRef, createContext, useContext } from 'react'
 
 // -------- menu data --------
 // menu now lives in MongoDB - fetched from the backend at runtime (see useEffect below)
-const API = 'http://localhost:5050'
+// API base URL: comes from the VITE_API_URL env var, falls back to local dev.
+const API = import.meta.env.VITE_API_URL || 'http://localhost:5050'
 
 const photos = [
   { num: '01', src: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=500&q=80', alt: 'curry' },
